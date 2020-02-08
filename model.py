@@ -1,62 +1,113 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import numpy as np\n",
-    "\n",
-    "from keras.models import Sequential\n",
-    "from keras.layers import Flatten, Dense, Lambda, Dropout, Conv2D\n",
-    "\n",
-    "\n",
-    "# Define model\n",
-    "model = Sequential()\n",
-    "model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(75, 320, 3)))\n",
-    "model.add(Conv2D(24, (5, 5), strides=(2, 2), activation=\"elu\"))\n",
-    "model.add(Conv2D(36, (5, 5), strides=(2, 2), activation=\"elu\"))\n",
-    "model.add(Conv2D(48, (5, 5), strides=(2, 2), activation=\"elu\"))\n",
-    "model.add(Conv2D(64, (3, 3), activation=\"elu\"))\n",
-    "model.add(Conv2D(64, (3, 3), activation=\"elu\"))\n",
-    "model.add(Dropout(0.8))\n",
-    "model.add(Flatten())\n",
-    "model.add(Dense(100))\n",
-    "model.add(Dense(50))\n",
-    "model.add(Dense(10))\n",
-    "model.add(Dense(1))\n",
-    "model.compile(optimizer='adam', loss='mse')\n",
-    "\n",
-    "# Train model\n",
-    "X_train = np.load('X_train.npy')\n",
-    "y_train = np.load('y_train.npy')\n",
-    "model.fit(X_train, y_train, epochs=5, validation_split=0.1)\n",
-    "\n",
-    "# Save model\n",
-    "model.save('model.h5')"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.7.5"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 2
-}
+import os
+import csv
+import cv2
+import math
+import numpy as np
+import sklearn
+from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
+
+lines=[]
+with open("../p4_data/data/driving_log.csv") as csvfile:
+    reader=csv.reader(csvfile)
+    for line in reader:
+        lines.append(line)
+
+
+train_samples, validation_samples = train_test_split(lines, test_size=0.2)
+print("# of train samples :",len(train_samples))
+print("# of validation samples: ",len( validation_samples))
+
+def generator(samples, batch_size=32,correction=0.2,crop_H=50,crop_L=140):
+    num_samples = len(samples)
+    while 1: # Loop forever so the generator never terminates
+        shuffle(samples)
+        for offset in range(0, num_samples, batch_size):
+            batch_samples = samples[offset:offset+batch_size]
+
+            images = []
+            angles = []
+            for batch_sample in batch_samples:
+                for i in range(3):
+                    name = '../p4_data/data/IMG/'+batch_sample[i].split('/')[-1]
+                    image = cv2.cvtColor(cv2.imread(name), cv2.COLOR_BGR2RGB)
+                    image = image[crop_H:crop_L, :]
+                    angle = float(batch_sample[3])
+                    images.append(image)
+                         
+                    if(i==0):
+                        angles.append(angle)
+                    elif(i==1):
+                        angles.append(angle+correction)
+                    elif(i==2):
+                        angles.append(angle-correction)
+                    
+                    images.append(cv2.flip(image,1))
+                    if(i==0):
+                        angles.append(angle*-1)
+                    elif(i==1):
+                        angles.append((angle+correction)*-1)
+                    elif(i==2):
+                        angles.append((angle-correction)*-1)
+
+            # trim image to only see section with road
+            X_train = np.array(images)
+            y_train = np.array(angles)
+            #print("X_train.shape:", X_train.shape)
+            #print("y_train.shape:", y_train.shape)
+            yield sklearn.utils.shuffle(X_train, y_train)
+
+            
+# Set our batch size
+batch_size=32
+correction=0.2
+crop_H=50
+crop_L=140
+ch, row, col = 3, 90, 320 
+
+# compile and train the model using the generator function
+train_generator = generator(train_samples,batch_size,correction,crop_H,crop_L)
+validation_generator = generator(validation_samples,batch_size,correction,crop_H,crop_L) 
+
+    
+from keras.models import Sequential, Model
+from keras.layers import Flatten, Dense,Lambda, Dropout, Conv2D, Cropping2D, BatchNormalization, Activation
+from keras.layers.pooling import MaxPooling2D
+import matplotlib.pyplot as plt
+
+model=Sequential()
+model.add(Lambda(lambda x: x/255 - 0.5, input_shape=(row, col,ch), output_shape=(row, col,ch)))
+model.add(Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu'))
+model.add(Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu'))
+model.add(Conv2D(filters=48, kernel_size=5, strides=(2, 2), activation='relu'))
+model.add(Conv2D(filters=64, kernel_size=3, strides=(1, 1), activation='relu'))
+model.add(Conv2D(filters=64, kernel_size=3, strides=(1, 1), activation='relu'))
+model.add(Flatten())
+model.add(Dense(100))
+model.add(Dense(50))
+model.add(Dense(10))
+model.add(Dense(1))
+
+
+model.compile(loss='mse',optimizer='adam')
+history_object=model.fit_generator(train_generator, 
+            steps_per_epoch=math.ceil(len(train_samples)/batch_size), 
+            validation_data=validation_generator, 
+            validation_steps=math.ceil(len(validation_samples)/batch_size), 
+            epochs=5, verbose=1)
+
+model.save('model.h5')
+print("Model was saved successfully \n\n")
+
+### print the keys contained in the history object
+print(history_object.history.keys())
+
+### plot the training and validation loss for each epoch
+plt.plot(history_object.history['loss'])
+plt.plot(history_object.history['val_loss'])
+plt.title('model mean squared error loss')
+plt.ylabel('mean squared error loss')
+plt.xlabel('epoch')
+plt.legend(['training set', 'validation set'], loc='upper right')
+plt.show()
+
