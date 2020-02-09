@@ -1,4 +1,4 @@
-#  ** Udacity Self-Driving Car Nanodegree Project 4 ** 
+#  **Udacity Self-Driving Car Nanodegree Project 4** 
 
 ## Behavioral Cloning
 
