@@ -3,8 +3,6 @@
 ## Udacity Self-Driving Car Nanodegree Project 4
 
 
----
-
 
 **The goals / steps of this project are the following:**
 
