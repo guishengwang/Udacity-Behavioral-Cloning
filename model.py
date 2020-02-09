@@ -3,12 +3,14 @@ import csv
 import cv2
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
 lines=[]
-with open("../p4_data/data/driving_log.csv") as csvfile:
+with open("./data/driving_log.csv") as csvfile:
     reader=csv.reader(csvfile)
     for line in reader:
         lines.append(line)
@@ -29,8 +31,8 @@ def generator(samples, batch_size=32,correction=0.2,crop_H=50,crop_L=140):
             angles = []
             for batch_sample in batch_samples:
                 for i in range(3):
-                    name = '../p4_data/data/IMG/'+batch_sample[i].split('/')[-1]
-                    image = cv2.cvtColor(cv2.imread(name), cv2.COLOR_BGR2RGB)
+                    name = './data/IMG/'+batch_sample[i].split('/')[-1]
+                    image = mpimg.imread(name)
                     image = image[crop_H:crop_L, :]
                     angle = float(batch_sample[3])
                     images.append(image)
@@ -110,4 +112,3 @@ plt.ylabel('mean squared error loss')
 plt.xlabel('epoch')
 plt.legend(['training set', 'validation set'], loc='upper right')
 plt.show()
-
