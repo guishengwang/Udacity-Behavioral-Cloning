@@ -10,17 +10,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
 lines=[]
-with open("./data/driving_log.csv") as csvfile:
+with open("/opt/carnd_p3/data/driving_log.csv") as csvfile:
     reader=csv.reader(csvfile)
     for line in reader:
         lines.append(line)
 
-
+lines.pop(0)
+        
 train_samples, validation_samples = train_test_split(lines, test_size=0.2)
 print("# of train samples :",len(train_samples))
 print("# of validation samples: ",len( validation_samples))
 
-def generator(samples, batch_size=32,correction=0.2,crop_H=50,crop_L=140):
+def generator(samples, batch_size=32,correction=0.2):
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
         shuffle(samples)
@@ -31,9 +32,8 @@ def generator(samples, batch_size=32,correction=0.2,crop_H=50,crop_L=140):
             angles = []
             for batch_sample in batch_samples:
                 for i in range(3):
-                    name = './data/IMG/'+batch_sample[i].split('/')[-1]
+                    name = '/opt/carnd_p3/data/IMG/'+batch_sample[i].split('/')[-1]
                     image = mpimg.imread(name)
-                    image = image[crop_H:crop_L, :]
                     angle = float(batch_sample[3])
                     images.append(image)
                          
@@ -63,13 +63,11 @@ def generator(samples, batch_size=32,correction=0.2,crop_H=50,crop_L=140):
 # Set our batch size
 batch_size=32
 correction=0.2
-crop_H=50
-crop_L=140
-ch, row, col = 3, 90, 320 
+ch, row, col = 3, 160, 320 
 
 # compile and train the model using the generator function
-train_generator = generator(train_samples,batch_size,correction,crop_H,crop_L)
-validation_generator = generator(validation_samples,batch_size,correction,crop_H,crop_L) 
+train_generator = generator(train_samples,batch_size,correction)
+validation_generator = generator(validation_samples,batch_size,correction) 
 
     
 from keras.models import Sequential, Model
@@ -79,6 +77,7 @@ import matplotlib.pyplot as plt
 
 model=Sequential()
 model.add(Lambda(lambda x: x/255 - 0.5, input_shape=(row, col,ch), output_shape=(row, col,ch)))
+model.add(Cropping2D(cropping=((50,20),(0,0)))) 
 model.add(Conv2D(filters=24, kernel_size=5, strides=(2, 2), activation='relu'))
 model.add(Conv2D(filters=36, kernel_size=5, strides=(2, 2), activation='relu'))
 model.add(Conv2D(filters=48, kernel_size=5, strides=(2, 2), activation='relu'))
@@ -101,14 +100,3 @@ history_object=model.fit_generator(train_generator,
 model.save('model.h5')
 print("Model was saved successfully \n\n")
 
-### print the keys contained in the history object
-print(history_object.history.keys())
-
-### plot the training and validation loss for each epoch
-plt.plot(history_object.history['loss'])
-plt.plot(history_object.history['val_loss'])
-plt.title('model mean squared error loss')
-plt.ylabel('mean squared error loss')
-plt.xlabel('epoch')
-plt.legend(['training set', 'validation set'], loc='upper right')
-plt.show()

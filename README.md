@@ -29,12 +29,36 @@
 
 #### 1. Submission includes all required files as below:
 
-* model.py containing the script to create and train the model
-* model.h5 containing a trained convolution neural network 
-* writeup_report.md  summarizing the results
-* drive.py for driving the car in autonomous mode, original file provided by Udacity
+File Name | Description
+----------|-----------
+model.py |all folder path varialbes applied for udacity workspace
+model.h5 |              generated from workspace and works for track one in simulator
+writeup_report.md |      summarizing the results and the same contents as README.MD
+drive.py        |       for driving the car in autonomous mode, original file provided by Udacity
+video.mp4 |  video under autonomous mode on track one
+
+Additional files
+
+File Name | Description
+----------|-----------
+model.ipynb | all folder path varialbles applied for my local drive
+model_local_track1.h5 | generated from my laptop and was not compatible with simulator on workspace
+
+
+At begining I ran the code successfuly at my laptop to save the data to h5 file which unfornately was not compatible with the simulator on workplace. I thought it was due to different versions of keras and I tried to downgrade keras from 2.3.1 to version 2.2.4 on my laptop and generated the model.h5 again, but it still didnot work. 
+
+Later, I found out it seems like other students also encountered such problem and someone suggested to run the code on workspace and it did work for me too.
 
 #### 2. Submission includes functional code
+
+At begining I ran the code successfuly at my laptop to save the data to model.h5 file which unfornately does not compatible with the simulator on workplace. I thought it was due to different version of keras and I tried to downgrade keras from 2.3.1 to version 2.2.4 and generate the model.h5 again, but it still didnot work. 
+
+Later, I found out it seems like other students also encountered such problem and someone suggested to run the code on workspace and it did work for me too. So the files I submitted 
+
+
+
+
+
 Using the Udacity provided simulator and drive.py file, the car can be driven autonomously around the track One by executing 
 ```sh
 python drive.py model.h5
