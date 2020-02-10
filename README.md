@@ -23,7 +23,7 @@
 [image6]: ./examples/placeholder_small.png "Normal Image"
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 [image10]: ./examples/csv_header.png "csv header Image"
-
+[image11]: ./examples/Nvidia_CNN.png "CNN"
 
 ---
 ### Files Submitted & Code Quality
@@ -100,11 +100,15 @@ import matplotlib.image as mpimg
 
 ### Model Architecture and Training Strategy
 
-#### 1. An appropriate model architecture has been employed
+#### 1. Model architecture 
 
 My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
 
 The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
+
+![alt text][image11]
+
+
 
 #### 2. Attempts to reduce overfitting in the model
 
