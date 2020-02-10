@@ -42,8 +42,8 @@ Additional files
 File Name | Description
 ----------|-----------
 model.ipynb | all folder path varialbles applied for my local drive
+model.html | files exported from Jupytor Notebook 
 model_local_track1.h5 | generated from my laptop and was not compatible with simulator on workspace
-
 
 At begining I ran the code successfuly at my laptop to save the data to h5 file which unfornately was not compatible with the simulator on workplace. I thought it was due to different versions of keras and I tried to downgrade keras from 2.3.1 to version 2.2.4 on my laptop and generated the model.h5 again, but it still didnot work. 
 
@@ -51,22 +51,16 @@ Later, I found out it seems like other students also encountered such problem an
 
 #### 2. Submission includes functional code
 
-At begining I ran the code successfuly at my laptop to save the data to model.h5 file which unfornately does not compatible with the simulator on workplace. I thought it was due to different version of keras and I tried to downgrade keras from 2.3.1 to version 2.2.4 and generate the model.h5 again, but it still didnot work. 
-
-Later, I found out it seems like other students also encountered such problem and someone suggested to run the code on workspace and it did work for me too. So the files I submitted 
-
-
-
-
-
-Using the Udacity provided simulator and drive.py file, the car can be driven autonomously around the track One by executing 
+The car can be driven autonomously around the track One by executing 
 ```sh
 python drive.py model.h5
 ```
 
-#### 3. Submission code is usable and readable
+#### 3. Remove header of csv file
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
+
+
 
 ### Model Architecture and Training Strategy
 
