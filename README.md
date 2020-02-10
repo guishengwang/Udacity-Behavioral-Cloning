@@ -22,6 +22,7 @@
 [image5]: ./examples/placeholder_small.png "Recovery Image"
 [image6]: ./examples/placeholder_small.png "Normal Image"
 [image7]: ./examples/placeholder_small.png "Flipped Image"
+[image10]: ./examples/csv_header.png "csv header Image"
 
 
 ---
@@ -42,7 +43,7 @@ Additional files
 File Name | Description
 ----------|-----------
 model.ipynb | all folder path varialbles applied for my local drive
-model.html | files exported from Jupytor Notebook 
+model.html |  file exported from Jupytor Notebook with result from model.ipynb 
 model_local_track1.h5 | generated from my laptop and was not compatible with simulator on workspace
 
 At begining I ran the code successfuly at my laptop to save the data to h5 file which unfornately was not compatible with the simulator on workplace. I thought it was due to different versions of keras and I tried to downgrade keras from 2.3.1 to version 2.2.4 on my laptop and generated the model.h5 again, but it still didnot work. 
@@ -58,8 +59,43 @@ python drive.py model.h5
 
 #### 3. Remove header of csv file
 
-The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
+There is a line of header in the file of "driving_log.csv" which should be removed from the list created from csv file.
+![alt text][image10]
 
+After appending all lines into the list, the first line (header in csv file) was pop out of the list, otherwise it will created problem during reading images.
+
+```sh
+lines=[]
+with open("../p4_data/data/driving_log.csv") as csvfile:
+    reader=csv.reader(csvfile)
+    for line in reader:
+        lines.append(line)
+
+lines.pop(0)
+```
+
+#### 4. RGB format of image
+
+The class material mentioned about the OpenCV read images file into BGR formet, instread of using OpenCV and convert to RGB format, I used the mpimg funciton from matplotlib.  I remember that we have to deal with similar problem when I was working on the first two projects of lane finding. 
+
+```sh
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+...
+...
+                    name = '../p4_data/data/IMG/'+batch_sample[i].split('/')[-1]
+                    image = mpimg.imread(name)
+                    angle = float(batch_sample[3])
+```
+
+
+
+
+**_I was spending lots of time debugging and later I realized lot of time was spent on these 3 issues below_**
+
+* Run the model.py under workspace to generate model.h5 to make sure it work with simulator
+* Remove the header from csv file 
+* Make sure the images read into RGB format
 
 
 ### Model Architecture and Training Strategy
