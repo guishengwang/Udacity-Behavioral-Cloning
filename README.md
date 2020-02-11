@@ -24,6 +24,9 @@
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 [image10]: ./examples/csv_header.png "csv header Image"
 [image11]: ./examples/Nvidia_CNN.png "CNN"
+[image12]: ./examples/origin.jpg "origin"
+[image13]: ./examples/cropping.jpg "cropping"
+[image14]: ./examples/loss_chart.png "loss chart"
 
 ---
 ### Files Submitted & Code Quality
@@ -62,7 +65,7 @@ python drive.py model.h5
 There is a line of header in the file of "driving_log.csv" which should be removed from the list created from csv file.
 ![alt text][image10]
 
-After appending all lines into the list, the first line (header in csv file) was pop out of the list, otherwise it will created problem during reading images.
+After appending all lines into the list, the first line (header in csv file) was pop out of the list, otherwise it will cause problem during reading images.
 
 ```sh
 lines=[]
@@ -76,7 +79,7 @@ lines.pop(0)
 
 #### 4. RGB format of image
 
-The class material mentioned about the OpenCV read images file into BGR formet, instread of using OpenCV and convert to RGB format, I used the mpimg funciton from matplotlib.  I remember that we have to deal with similar problem when I was working on the first two projects of lane finding. 
+The class material mentioned about the OpenCV read images file into BGR formet, instread of using OpenCV and convert to RGB format, I used the mpimg funciton from matplotlib. We have to deal with similar problem on the first two projects of lane finding. 
 
 ```sh
 import matplotlib.pyplot as plt
@@ -102,80 +105,81 @@ import matplotlib.image as mpimg
 
 #### 1. Model architecture 
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+Nvidia model is being used for this project since this has been proven to be effective according many other students. The architecture of the model is illustrated as below but the dimensional of each layer are different. 
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
+
+**Same Architecture but dimension for Reference only**
 
 ![alt text][image11]
 
+The images has been cropped to the size of (90,320) as suggested by the instrutor to keep the middle part of the image only. To remove the top section with sky, tree and lower section with engine hood. 
+
+Original image | Cropped image
+----------|-----------
+![alt text][image12] | ![alt text][image13]
 
 
-#### 2. Attempts to reduce overfitting in the model
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
+#### 2. Loading Data 
 
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+The dataset provided by Udacity was used as training data. The whole dataset was splited to training set (80%) and validation set(20%) by using sklearn
 
-#### 3. Model parameter tuning
+```sh
+train_samples, validation_samples = train_test_split(lines, test_size=0.2)
+```
+Below are the number of training and validation samples
+train samples : 6428
+validation samples:  1608
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
+#### 3. Add left and right images to combat the overfitting
 
-#### 4. Appropriate training data
+A correction factor of 0.2 was used for left and right images, below is the code to read left and right image and calcualtion of the angle with correction factor.
 
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
+```sh
+                for i in range(3):
+                    name = '../p4_data/data/IMG/'+batch_sample[i].split('/')[-1]
+                    image = mpimg.imread(name)
+                    angle = float(batch_sample[3])
+                    images.append(image)
+                         
+                    if(i==0):
+                        angles.append(angle)
+                    elif(i==1):
+                        angles.append(angle+correction)
+                    elif(i==2):
+                        angles.append(angle-correction)
 
-For details about how I created the training data, see the next section. 
+```
 
-### Model Architecture and Training Strategy
+#### 4. Flipping images to help left turn bias
 
-#### 1. Solution Design Approach
+According the instruction on class, to help the left turn bias, the images (middle, left and right) was flipped and added into training set. 
 
-The overall strategy for deriving a model architecture was to ...
+```sh
+                    images.append(cv2.flip(image,1))
+                    if(i==0):
+                        angles.append(angle*-1)
+                    elif(i==1):
+                        angles.append((angle+correction)*-1)
+                    elif(i==2):
+                        angles.append((angle-correction)*-1)
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
-
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
-
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
-
-#### 2. Final Model Architecture
-
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
-
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
-
-![alt text][image1]
-
-#### 3. Creation of the Training Set & Training Process
-
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
-
-![alt text][image2]
-
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
-
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
-
-Then I repeated this process on track two in order to get more data points.
-
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
-
-![alt text][image6]
-![alt text][image7]
-
-Etc ....
-
-After the collection process, I had X number of data points. I then preprocessed this data by ...
+```
 
 
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
+#### 5. Visualizing loss
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+Below is the chart to visualize the training and validation loss for each epoch. After 5 epoch, the training and validation loss has been dropped to a similar level.
+
+![alt text][image14]
+
+#### 6. Use Generators
+
+Generator is new concept/method for me and I tried to use different batch size and find out for my laptop, 32 is a good number to use to prevent memory crash and I used the same batch size on workspace.
+
+
+### Discussion
+
+Compared to the previous project of traffic sign, this one is less complicated but more interesing. The challenge is the track two, unfortunately I didnot have time to finish it, already overdue for nearlly a month. By using the dataset provided by Udacity and all the tricks from the class, the model.h5 generated by Nvidia CNN could drvie the car through the track one successfully. 
+
+I started to use github and markdown file to write the report instead of pdf. It aslo took me some time to learn the git,github and version control. Appreciate the help from my mentor, guide me through the project and the learning process. 
